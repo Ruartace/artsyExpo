@@ -1,0 +1,20 @@
+// 定义表单字段的默认值
+export const vocalBaseFormDefaults = {
+  performanceType: '',
+  minutes: 0,
+  seconds: 0,
+  song1: '',
+  song2: '',
+  song1HasChinese: true,
+  song1IsOriginal: false,
+  song2HasChinese: true,
+  song2IsOriginal: false,
+  contact: '',
+  phone: '',
+  address: '',
+  group: '',
+  leader: '',
+  tutor: '',
+  notice: false,
+  performerCount: null,
+} as const
