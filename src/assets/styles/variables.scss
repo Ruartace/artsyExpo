@@ -1,0 +1,108 @@
+// 全局SCSS变量定义
+// Global SCSS Variables
+
+// 主题颜色 - Theme Colors
+$primary-color: #409eff;
+$success-color: #67c23a;
+$warning-color: #e6a23c;
+$danger-color: #f56c6c;
+$error-color: #f56c6c;
+$info-color: #909399;
+
+// 布局颜色 - Layout Colors
+$layout-bg: #eceff3;
+$header-bg: #fffefe;
+$sidebar-bg: #ffffff;
+$card-bg: #ffffff;
+
+// 文字颜色 - Text Colors
+$text-primary: #1f1f1f;
+$text-regular: #333333;
+$text-secondary: #606266;
+$text-placeholder: #a3a6ad;
+$text-disabled: #c0c4cc;
+
+// 边框颜色 - Border Colors
+$border-base: #dcdfe6;
+$border-light: #e4e7ed;
+$border-lighter: #ebeef5;
+$border-extra-light: #f2f6fc;
+
+// 用户名样式 - Username Styles
+$username-bg: #e6e8eb;
+$username-border: #d0d3d8;
+$username-text: #1f1f1f;
+
+// 菜单样式 - Menu Styles
+$menu-text: #333333;
+$menu-active-bg: rgba(64, 158, 255, 0.18);
+$menu-active-text: #1f5ea8;
+$menu-hover-bg: #f2f6ff;
+$menu-hover-text: #409eff;
+$section-text: #a3a6ad;
+$brand-text: #1f1f1f;
+
+// 尺寸变量 - Size Variables
+$sidebar-width: 220px;
+$header-height: 60px;
+$menu-margin: 10px;
+$menu-padding: 6px 10px;
+$header-gap: 16px;
+$header-font-size: 14px;
+$username-padding: 6px 10px;
+$brand-padding: 16px;
+$section-padding: 12px;
+
+// 圆角 - Border Radius
+$border-radius-small: 4px;
+$border-radius-base: 8px;
+$border-radius-large: 12px;
+$border-radius-round: 9999px;
+
+// 阴影 - Box Shadow
+$box-shadow-light: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+$box-shadow-base: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.12);
+$box-shadow-dark: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.12);
+
+// 间距 - Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 12px;
+$spacing-lg: 16px;
+$spacing-xl: 20px;
+$spacing-xxl: 24px;
+
+// 字体大小 - Font Sizes
+$font-size-xs: 12px;
+$font-size-sm: 13px;
+$font-size-base: 14px;
+$font-size-md: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-xxl: 24px;
+
+// 字体粗细 - Font Weights
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 600;
+$font-weight-bolder: 700;
+
+// 标签页样式 - Tabs Styles
+$tabs-wrapper-bg: #e8e7e7;
+$tabs-height: 50px; // 增加标签页容器高度
+$tabs-nav-height: 42px;
+$tabs-item-height: 32px;
+$tabs-item-min-width: 120px;
+$tabs-item-max-width: 200px;
+$tabs-item-padding: 0 12px;
+$tabs-item-margin-left: 8px;
+$tabs-item-bg: #ffffff;
+$tabs-item-color: #000000;
+$tabs-item-font-size: 13px;
+$tabs-active-color: $primary-color; // #409eff
+$tabs-active-border: $primary-color; // #409eff
+$tabs-hover-border: $primary-color; // #409eff
+$tabs-close-bg: #ccc;
+$tabs-close-hover-bg: $danger-color; // #f56c6c
+$tabs-close-active-bg: $primary-color; // #409eff

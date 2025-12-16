@@ -1,0 +1,262 @@
+// 布局样式 - Layout Styles
+// 定义布局相关的SCSS样式
+
+@use './variables.scss' as *;
+
+// 布局容器
+.layout {
+  height: 100vh;
+
+  // 侧边栏样式
+  .aside {
+    width: $sidebar-width;
+    border-right: 1px solid $border-base;
+    height: 100vh;
+    background: $sidebar-bg;
+
+    // 品牌标题
+    .brand {
+      padding: $brand-padding;
+      font-weight: $font-weight-bold;
+      color: $brand-text;
+      text-align: center; // 文字居中
+    }
+
+    // 菜单分组标题
+    .menu-section {
+      padding: $section-padding;
+      color: $section-text;
+      text-align: center;
+      user-select: none;
+    }
+
+    // Element Plus 菜单深度样式覆盖
+    :deep(.el-menu) {
+      background-color: transparent;
+      border-right: none;
+    }
+
+    :deep(.el-menu-item),
+    :deep(.el-sub-menu__title) {
+      color: $menu-text;
+      border-radius: $border-radius-base;
+      margin: 0 $menu-margin;
+    }
+
+    :deep(.el-menu-item:hover) {
+      background-color: $menu-hover-bg;
+      color: $menu-hover-text;
+    }
+
+    :deep(.el-menu-item.is-active) {
+      background-color: $menu-active-bg;
+      color: $menu-active-text;
+    }
+  }
+
+  // 页眉样式
+  .header {
+    display: flex;
+    justify-content: flex-end; // 由于没有左侧标题，按钮靠右显示
+    align-items: center;
+    border-bottom: 1px solid $border-base;
+    background: $header-bg;
+
+    // 用户名样式
+    .username {
+      color: $username-text;
+      font-weight: $font-weight-medium;
+      margin-right: 0;
+      background: $username-bg;
+      border: 1px solid $username-border;
+      border-radius: $border-radius-round;
+      padding: $username-padding !important;
+      box-sizing: content-box;
+      line-height: 1.2;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    // 操作按钮容器
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: $header-gap;
+      font-size: $font-size-base;
+
+      // Element Plus 按钮样式覆盖
+      :deep(.el-button.is-link) {
+        font-size: $font-size-base;
+        padding: 0;
+      }
+
+      :deep(.el-button) {
+        padding: 0;
+      }
+
+      :deep(.el-button + .el-button) {
+        margin-left: 0 !important;
+      }
+
+      .username {
+        padding: 0;
+      }
+    }
+  }
+
+  // 主内容区域背景
+  :deep(.el-container > .el-container) {
+    background: $layout-bg;
+  }
+
+  :deep(.el-main) {
+    background: $layout-bg;
+  }
+}
+
+// 标签页容器样式
+.tabs-wrapper {
+  background-color: $tabs-wrapper-bg;
+  height: $tabs-height;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-bottom: 5px;
+  display: flex; // 使用 flex 布局
+  align-items: center; // 垂直居中
+
+  .tabs-container {
+    height: 100%;
+    width: 100%;
+    display: flex; // 使用 flex 布局
+    align-items: center; // 垂直居中
+  }
+}
+
+// Element Plus 标签页自定义样式
+.custom-tabs {
+  height: 100%; // 使用100%填满容器
+  display: flex; // 使用 flex 布局
+  align-items: center; // 垂直居中
+
+  :deep(.el-tabs__header) {
+    margin: 0;
+    border-bottom: none;
+    background-color: transparent;
+    height: 100%; // 填满父容器高度
+    display: flex; // 使用 flex 布局
+    align-items: center; // 垂直居中
+  }
+
+  :deep(.el-tabs__nav-wrap) {
+    height: 100%; // 填满父容器高度
+    display: flex;
+    align-items: center; // 垂直居中
+  }
+
+  :deep(.el-tabs__nav) {
+    border: none;
+    height: auto;
+    display: flex; // 使用 flex 布局
+    align-items: center; // 垂直居中
+  }
+
+  // 标签页项 - 未选中状态
+  :deep(.el-tabs__item) {
+    min-width: $tabs-item-min-width;
+    max-width: $tabs-item-max-width;
+    height: $tabs-item-height;
+    line-height: 30px;
+    padding: $tabs-item-padding;
+    margin-left: $tabs-item-margin-left;
+    background-color: $tabs-item-bg;
+    border: none;
+    color: $tabs-item-color;
+    font-size: $tabs-item-font-size;
+    transition: all 0.2s ease;
+    position: relative;
+    opacity: 0;
+    filter: blur(16px);
+    animation: getUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+
+  // 标签页项 - 悬停状态
+  :deep(.el-tabs__item:hover) {
+    background-color: $tabs-item-bg;
+    box-shadow: inset 2px 0 0 $tabs-hover-border;
+    transition: all 0.2s ease;
+  }
+
+  // 标签页项 - 选中状态
+  :deep(.el-tabs__item.is-active) {
+    background-color: $tabs-item-bg;
+    box-shadow: inset 5px 0 0 $tabs-active-border;
+    border-color: $tabs-active-border;
+    color: $tabs-active-color;
+    font-weight: $font-weight-medium;
+    z-index: 1;
+    animation: duration 0.35s linear forwards;
+  }
+
+  // 关闭图标样式
+  :deep(.el-tabs__item .el-icon-close) {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: $tabs-close-bg;
+    color: white;
+    font-size: 12px;
+    margin-left: 8px;
+    transition: all 0.2s ease;
+  }
+
+  :deep(.el-tabs__item .el-icon-close:hover) {
+    background-color: $tabs-close-hover-bg;
+  }
+
+  :deep(.el-tabs__item.is-active .el-icon-close) {
+    background-color: $tabs-close-active-bg;
+  }
+
+  :deep(.el-tabs__item.is-active .el-icon-close:hover) {
+    background-color: $tabs-close-hover-bg;
+  }
+
+  // 隐藏标签页内容
+  :deep(.el-tabs__content) {
+    display: none;
+  }
+}
+
+// 标签页动画
+@keyframes getUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+    filter: blur(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes duration {
+  0% {
+    filter: blur(0px);
+  }
+  65% {
+    filter: blur(3px);
+  }
+  100% {
+    filter: blur(0px);
+    opacity: 1;
+  }
+}
+
+// 弹窗底部按钮样式
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: $spacing-sm;
+}

@@ -1,0 +1,61 @@
+// 全局样式文件
+// Global Styles
+
+// 引入变量和组件样式
+@use './variables.scss' as *;
+@use './layout.scss';
+@use './components.scss';
+
+// 重置样式
+html, body, #app { 
+  height: 100%; 
+  margin: 0;
+  padding: 0;
+}
+
+* { 
+  box-sizing: border-box; 
+}
+
+// 字体设置
+html, body {
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+}
+
+// Element Plus 主题色覆盖
+:root {
+  --gap: 12px;
+  --el-color-primary: #{$primary-color};
+  --el-color-success: #{$success-color};
+  --el-color-warning: #{$warning-color};
+  --el-color-danger: #{$danger-color};
+  --el-color-error: #{$error-color};
+  --el-color-info: #{$info-color};
+}
+
+// 通用容器
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+// 通用工具类
+.mb12 { margin-bottom: 12px; }
+.mb16 { margin-bottom: 16px; }
+.mb20 { margin-bottom: 20px; }
+.mt12 { margin-top: 12px; }
+.mt16 { margin-top: 16px; }
+.mt20 { margin-top: 20px; }
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.flex { display: flex; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-start { display: flex; align-items: center; justify-content: flex-start; }
+.flex-end { display: flex; align-items: center; justify-content: flex-end; }
+
+
