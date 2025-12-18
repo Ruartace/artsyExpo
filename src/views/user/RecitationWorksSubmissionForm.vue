@@ -72,7 +72,7 @@ const emit = defineEmits<{ (e: 'submit', payload: SubmitPayload): void }>()
 
 /* ---- 基础信息 ---- */
 const baseForm = reactive<BaseForm>({
-  ...baseFormDefaults
+  ...baseFormDefaults,
 })
 
 /* ---- 简介 ---- */
@@ -83,13 +83,6 @@ const accepts = '.mp3,.wav,.pdf,.jpg,.jpeg,.png'
 const fileList = ref<FileItem[]>([])
 
 /* ---- 花名册 列定义 ---- */
-type Column = {
-  prop: string
-  label: string
-  width?: number
-  type?: 'text' | 'select'
-  options?: Array<{ label: string; value: string }>
-}
 
 /* ---- 表数据 ---- */
 const teachers = ref<RosterItem[]>([])

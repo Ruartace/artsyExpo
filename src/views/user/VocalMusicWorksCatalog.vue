@@ -97,13 +97,6 @@ const scoreAccepts = '.pdf'
 const scoreFiles = ref<FileItem[]>([])
 
 /* ---- 花名册 列定义 ---- */
-// type Column = {
-//   prop: string
-//   label: string
-//   width?: number
-//   type?: 'text' | 'select'
-//   options?: Array<{ label: string; value: string }>
-// }
 
 /* ---- 四个表数据 ---- */
 const teachers = ref<RosterItem[]>([])
