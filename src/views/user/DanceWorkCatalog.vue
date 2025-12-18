@@ -1,5 +1,5 @@
 <script lang="ts" setup name="DanceWorkCatalog">
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import RosterBlock from '@/components/RosterBlock.vue'
 import { InfoFilled, UploadFilled } from '@element-plus/icons-vue'
@@ -99,41 +99,92 @@ const onSave = () => {
     ElMessage.error('暂存失败，请重试')
   }
 }
-// 重置功能待商议
-// const onReset = () => {
-//   baseForm.performanceType = 'group'
-//   baseForm.minutes = 0
-//   baseForm.seconds = 0
-//   baseForm.song1 = ''
-//   baseForm.song2 = ''
-//   baseForm.song1HasChinese = true
-//   baseForm.song1IsOriginal = false
-//   baseForm.song2HasChinese = true
-//   baseForm.song2IsOriginal = false
-//   baseForm.contact = ''
-//   baseForm.phone = ''
-//   baseForm.address = ''
-//   baseForm.group = ''
-//   baseForm.leader = ''
-//   baseForm.tutor = ''
-//   baseForm.notice = false
-//   baseForm.groupCount = undefined
-//   intro.value = ''
-//   fileList.value = []
-//   teachers.value = []
-//   members.value = []
-//   accomp.value = []
-// }
-
 const onSubmit = () => {
+  if (!baseForm.performanceType) {
+    ElMessage.error('请选择表演形式')
+    return
+  }
+
+  const durationSec = (baseForm.minutes || 0) * 60 + (baseForm.seconds || 0)
+
+  // 校验群舞人数
+  if (baseForm.performanceType === 'group') {
+    if (!baseForm.groupCount) {
+      ElMessage.error('请填写表演人数')
+      return
+    }
+    if (baseForm.groupCount > performerLimit.value.maxCount) {
+      ElMessage.error(`群舞人数不能超过${performerLimit.value.maxCount}人`)
+      return
+    }
+    // 校验实际名单人数是否一致
+    if (members.value.length !== baseForm.groupCount) {
+      ElMessage.error(
+        `参赛学生名单人数(${members.value.length}人)与填写的表演人数(${baseForm.groupCount}人)不一致`,
+      )
+      return
+    }
+    // 校验时长
+    const maxDurationSec = performerLimit.value.maxDuration * 60
+    if (durationSec > maxDurationSec) {
+      ElMessage.error(`演出时间不能超过${performerLimit.value.maxDuration}分钟`)
+      return
+    }
+  }
+
+  // 校验指导教师人数
+  if (teachers.value.length > 3) {
+    ElMessage.error('指导教师人数不得超过3人')
+    return
+  }
+
+  // 校验必填项
+  if (!baseForm.song1) {
+    ElMessage.error('请输入表演名称')
+    return
+  }
+  if (!baseForm.contact) {
+    ElMessage.error('请输入联系人姓名')
+    return
+  }
+  if (!baseForm.phone) {
+    ElMessage.error('请输入联系电话')
+    return
+  }
+  if (!baseForm.notice) {
+    ElMessage.error('请阅读并同意报名须知')
+    return
+  }
+
   const payload: SubmitPayload = {
-    base: { ...baseForm, durationSec: baseForm.minutes * 60 + baseForm.seconds },
+    base: { ...baseForm, durationSec },
     intro: intro.value,
     files: fileList.value.map((f) => ({ name: f.name, size: f.size, type: f.type })),
     rosters: { teachers: teachers.value, members: members.value, accomp: [] },
   }
   emit('submit', payload)
 }
+
+/* ---- 限制计算属性 ---- */
+const performerLimit = computed(() => {
+  if (baseForm.performanceType === 'group') {
+    return {
+      maxCount: 36,
+      maxDuration: 7, // minutes
+      description: '群舞：人数不超过36人，演出时间不超过7分钟。',
+    }
+  }
+  return {
+    maxCount: 36,
+    maxDuration: 7,
+    description: '群舞：人数不超过36人，演出时间不超过7分钟。',
+  }
+})
+
+const durationExceeded = computed(() => {
+  const totalMinutes = (baseForm.minutes || 0) + (baseForm.seconds || 0) / 60
+  return totalMinutes > performerLimit.value.maxDuration
+})
 </script>
 
 <template>
@@ -160,10 +211,10 @@ const onSubmit = () => {
           <!-- 表演形式和时长 -->
           <el-row :gutter="24">
             <el-col :span="12">
-              <el-form-item label="表演形式" required placeholder="请选择表演形式">
+              <el-form-item label="表演形式" required>
                 <el-select
                   v-model="baseForm.performanceType"
-                  placeholder="请选择"
+                  placeholder="请选择表演形式"
                   style="width: 100%"
                 >
                   <el-option label="群舞" value="group" />
@@ -171,13 +222,18 @@ const onSubmit = () => {
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="作品时长" required>
+              <el-form-item
+                label="作品时长"
+                required
+                :error="durationExceeded ? `演出时间不能超过${performerLimit.maxDuration}分钟` : ''"
+              >
                 <div class="duration">
                   <el-input
                     v-model.number="baseForm.minutes"
                     type="number"
                     min="0"
                     style="width: 80px"
+                    :class="{ 'input-error': durationExceeded }"
                   />
                   <span class="unit">分</span>
                   <el-input
@@ -186,6 +242,7 @@ const onSubmit = () => {
                     min="0"
                     max="59"
                     style="width: 80px"
+                    :class="{ 'input-error': durationExceeded }"
                   />
                   <span class="unit">秒</span>
                 </div>
@@ -206,7 +263,15 @@ const onSubmit = () => {
               </el-form-item>
             </el-col>
           </el-row>
-
+          <!-- 限制提示 -->
+          <el-row :gutter="24">
+            <el-col :span="24">
+              <div class="performer-limit-tip">
+                <el-icon><InfoFilled /></el-icon>
+                <span>{{ performerLimit.description }}</span>
+              </div>
+            </el-col>
+          </el-row>
           <!-- 表演信息 -->
           <div class="song-section">
             <h4 class="section-title">表演信息</h4>
@@ -235,12 +300,12 @@ const onSubmit = () => {
             <el-row :gutter="24">
               <el-col :span="12">
                 <el-form-item label="联系人" required>
-                  <el-input v-model="baseForm.contact" placeholder="联系人姓名" />
+                  <el-input v-model="baseForm.contact" placeholder="请输入联系人姓名" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="联系电话" required>
-                  <el-input v-model="baseForm.phone" placeholder="手机号" />
+                  <el-input v-model="baseForm.phone" placeholder="请输入联系人手机号码" />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -248,12 +313,12 @@ const onSubmit = () => {
             <el-row :gutter="24">
               <el-col :span="12">
                 <el-form-item label="联系地址" required>
-                  <el-input v-model="baseForm.address" placeholder="联系地址" />
+                  <el-input v-model="baseForm.address" placeholder="请输入联系地址" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="组别" required>
-                  <el-select v-model="baseForm.group" placeholder="请选择" style="width: 100%">
+                  <el-select v-model="baseForm.group" placeholder="请选择组别" style="width: 100%">
                     <el-option label="甲组" value="group1" />
                     <el-option label="乙组" value="group2" />
                   </el-select>

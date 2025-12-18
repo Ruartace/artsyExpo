@@ -89,21 +89,16 @@ const loadCategories = async () => {
   }
 }
 loadCategories()
-
 /* ---- 上传 ---- */
 const accepts = '.mp3,.wav,.pdf,.jpg,.jpeg,.png'
 const fileList = ref<FileItem[]>([])
 const scoreAccepts = '.pdf'
 const scoreFiles = ref<FileItem[]>([])
-
-/* ---- 花名册 列定义 ---- */
-
 /* ---- 四个表数据 ---- */
 const teachers = ref<RosterItem[]>([])
 const members = ref<RosterItem[]>([])
 const accomp = ref<RosterItem[]>([])
 const accompaniment = ref<RosterItem[]>([])
-
 /* ---- 行为：暂存 / 提交 ---- */
 const onSave = () => {
   // 暂存当前表单数据到本地存储
@@ -300,7 +295,6 @@ const durationErrorText = computed(() =>
           </p>
         </div>
       </el-card>
-
       <!-- 1 基础信息 -->
       <el-card shadow="never" class="section-card sec-1">
         <template #header
@@ -352,7 +346,6 @@ const durationErrorText = computed(() =>
               </el-form-item>
             </el-col>
           </el-row>
-
           <!-- 表演人数 -->
           <el-row :gutter="24">
             <el-col :span="12">
@@ -366,11 +359,9 @@ const durationErrorText = computed(() =>
               </el-form-item>
             </el-col>
           </el-row>
-
           <!-- 曲目信息 -->
           <div class="song-section">
             <h4 class="section-title">曲目信息</h4>
-
             <!-- 曲目1 -->
             <el-row :gutter="20">
               <el-col :span="8">
@@ -395,7 +386,6 @@ const durationErrorText = computed(() =>
                 </el-form-item>
               </el-col>
             </el-row>
-
             <!-- 曲目2 -->
             <el-row :gutter="24">
               <el-col :span="8">
@@ -421,32 +411,30 @@ const durationErrorText = computed(() =>
               </el-col>
             </el-row>
           </div>
-
           <!-- 联系信息 -->
           <div class="contact-section">
             <h4 class="section-title">联系信息</h4>
             <el-row :gutter="24">
               <el-col :span="12">
                 <el-form-item label="联系人" required>
-                  <el-input v-model="baseForm.contact" placeholder="联系人姓名" />
+                  <el-input v-model="baseForm.contact" placeholder="请输入联系人姓名" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="联系电话" required>
-                  <el-input v-model="baseForm.phone" placeholder="手机号" />
+                  <el-input v-model="baseForm.phone" placeholder="请输入联系人手机号码" />
                 </el-form-item>
               </el-col>
             </el-row>
-
             <el-row :gutter="24">
               <el-col :span="12">
                 <el-form-item label="联系地址" required>
-                  <el-input v-model="baseForm.address" placeholder="联系地址" />
+                  <el-input v-model="baseForm.address" placeholder="请输入联系地址" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="组别" required>
-                  <el-select v-model="baseForm.group" placeholder="请选择" style="width: 100%">
+                  <el-select v-model="baseForm.group" placeholder="请选择组别" style="width: 100%">
                     <el-option label="甲组" value="group1" />
                     <el-option label="乙组" value="group2" />
                   </el-select>
@@ -456,7 +444,6 @@ const durationErrorText = computed(() =>
           </div>
         </el-form>
       </el-card>
-
       <!-- 2 作品简介 -->
       <el-card shadow="never" class="section-card sec-2">
         <template #header>
