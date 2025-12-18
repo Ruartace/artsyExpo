@@ -1,7 +1,9 @@
 export const baseFormDefaults = {
   performanceType: '',
-  minutes: 0,
-  seconds: 0,
+  artworkName: '',
+  artworkLength: null,
+  artworkWidth: null,
+  creationTime: '',
   song1: '',
   song2: '',
   song1HasChinese: true,
@@ -15,5 +17,4 @@ export const baseFormDefaults = {
   leader: '',
   tutor: '',
   notice: false,
-  groupCount: undefined,
 }

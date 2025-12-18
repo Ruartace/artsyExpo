@@ -3,6 +3,8 @@ import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import RosterBlock from '@/components/RosterBlock.vue'
 import { InfoFilled, UploadFilled } from '@element-plus/icons-vue'
+import { baseFormDefaults } from '@/config/forms/user/DanceWorkCatalog'
+import { teacherColumns, memberColumns } from '@/config/tables/user/DanceWorkCatalog'
 
 // 定义类型接口
 interface BaseForm {
@@ -62,23 +64,7 @@ const emit = defineEmits<{ (e: 'submit', payload: SubmitPayload): void }>()
 
 /* ---- 基础信息 ---- */
 const baseForm = reactive<BaseForm>({
-  performanceType: '',
-  minutes: 0,
-  seconds: 0,
-  song1: '',
-  song2: '',
-  song1HasChinese: true,
-  song1IsOriginal: false,
-  song2HasChinese: true,
-  song2IsOriginal: false,
-  contact: '',
-  phone: '',
-  address: '',
-  group: '',
-  leader: '',
-  tutor: '',
-  notice: false,
-  groupCount: undefined,
+  ...baseFormDefaults,
 })
 
 /* ---- 简介 ---- */
@@ -87,57 +73,6 @@ const intro = ref('')
 /* ---- 上传 ---- */
 const accepts = '.mp3,.wav,.pdf,.jpg,.jpeg,.png'
 const fileList = ref<FileItem[]>([])
-
-/* ---- 花名册 列定义 ---- */
-type Column = {
-  prop: string
-  label: string
-  width?: number
-  type?: 'text' | 'select'
-  options?: Array<{ label: string; value: string }>
-}
-
-const teacherColumns: Column[] = [
-  { prop: 'name', label: '姓名', width: 120 },
-  { prop: 'idNo', label: '身份证号', width: 200 },
-  { prop: 'nation', label: '民族', width: 100 },
-  { prop: 'age', label: '年龄', width: 100 },
-  {
-    prop: 'gender',
-    label: '性别',
-    width: 150,
-    type: 'select',
-    options: [
-      { label: '男', value: 'male' },
-      { label: '女', value: 'female' },
-    ],
-  },
-  { prop: 'phone', label: '联系方式', width: 160 },
-]
-
-const memberColumns: Column[] = [
-  { prop: 'name', label: '姓名', width: 120 },
-  { prop: 'idNo', label: '身份证号', width: 200 },
-  { prop: 'nation', label: '民族', width: 100 },
-  { prop: 'age', label: '年龄', width: 100 },
-  // { prop: 'major', label: '专业类别', width: 160 },
-  {
-    prop: 'gender',
-    label: '性别',
-    width: 150,
-    type: 'select',
-    options: [
-      { label: '男', value: 'male' },
-      { label: '女', value: 'female' },
-    ],
-  },
-  { prop: 'grade', label: '年级', width: 100 },
-  { prop: 'studentId', label: '学籍号', width: 160 },
-  // { prop: 'region', label: '所在地区', width: 140 },
-  // { prop: 'school', label: '学校名称', width: 160 },
-  // { prop: 'dept', label: '所在院系/部门', width: 180 },
-  { prop: 'phone', label: '联系方式', width: 160 },
-]
 
 /* ---- 三个表数据 ---- */
 const teachers = ref<RosterItem[]>([])

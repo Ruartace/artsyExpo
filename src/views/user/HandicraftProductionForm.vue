@@ -1,9 +1,10 @@
-
 <script lang="ts" setup name="HandicraftProductionForm">
 import { reactive, ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import RosterBlock from '@/components/RosterBlock.vue'
 import { InfoFilled, UploadFilled } from '@element-plus/icons-vue'
+import { baseFormDefaults } from '@/config/forms/user/HandicraftProductionForm'
+import { memberColumns } from '@/config/tables/user/HandicraftProductionForm'
 
 // 定义类型接口
 interface BaseForm {
@@ -65,25 +66,7 @@ const emit = defineEmits<{ (e: 'submit', payload: SubmitPayload): void }>()
 
 /* ---- 基础信息 ---- */
 const baseForm = reactive<BaseForm>({
-  performanceType: '',
-  artworkForm: '',
-  artworkName: '',
-  artworkLength: null,
-  artworkWidth: null,
-  creationTime: '',
-  song1: '',
-  song2: '',
-  song1HasChinese: true,
-  song1IsOriginal: false,
-  song2HasChinese: true,
-  song2IsOriginal: false,
-  contact: '',
-  phone: '',
-  address: '',
-  group: '',
-  leader: '',
-  tutor: '',
-  notice: false
+  ...baseFormDefaults
 })
 
 /* ---- 简介 ---- */
@@ -94,27 +77,9 @@ const accepts = '.mp3,.wav,.pdf,.jpg,.jpeg,.png'
 const fileList = ref<FileItem[]>([])
 
 /* ---- 花名册 列定义 ---- */
-type Column = {
-  prop: string
-  label: string
-  width?: number
-  type?: 'text' | 'select'
-  options?: Array<{ label: string; value: string }>
-}
-
-
-const memberColumns: Column[] = [
-  { prop: 'name', label: '作者姓名', width: 120 },
-  { prop: 'idNo', label: '身份证号', width: 200 },
-  { prop: 'gender', label: '性别', width: 150, type: 'select', options: [{ label:'男', value:'male' }, { label:'女', value:'female' }] },
-  { prop: 'studentId', label: '学籍号', width: 160 },
-  { prop: 'phone', label: '联系方式', width: 160 }
-]
 
 /* ---- 表数据 ---- */
 const members = ref<RosterItem[]>([])
-
-
 
 /* ---- 行为：暂存 / 提交 ---- */
 const onSave = () => {
@@ -125,7 +90,7 @@ const onSave = () => {
     files: fileList.value,
     rosters: {
       members: members.value,
-    }
+    },
   }
 
   try {
@@ -166,8 +131,8 @@ const onSubmit = () => {
   const payload: SubmitPayload = {
     base: { ...baseForm, durationSec: 0 },
     intro: intro.value,
-    files: fileList.value.map(f => ({ name: f.name, size: f.size, type: f.type })),
-    rosters: { teachers: [], members: members.value, accomp: [] }
+    files: fileList.value.map((f) => ({ name: f.name, size: f.size, type: f.type })),
+    rosters: { teachers: [], members: members.value, accomp: [] },
   }
   emit('submit', payload)
 }
@@ -178,13 +143,13 @@ const sizeLimit = computed(() => {
     return {
       maxLength: 138,
       maxWidth: 69,
-      description: '国画尺寸不超过四尺宣纸（69cm×138cm）对开'
+      description: '国画尺寸不超过四尺宣纸（69cm×138cm）对开',
     }
   } else {
     return {
       maxLength: 60,
       maxWidth: 40,
-      description: '其他画种尺寸不超过对开（40cm×60cm）'
+      description: '其他画种尺寸不超过对开（40cm×60cm）',
     }
   }
 })
@@ -201,208 +166,247 @@ const widthExceeded = computed(() => {
 <template>
   <div class="scroll-container">
     <div class="voice-form">
-    <!-- 顶部说明 -->
-    <el-card shadow="never" class="intro-card">
-      <template #header>
-        <div class="card-title">
-          <el-icon><InfoFilled /></el-icon>
-          <span>手工艺制作作品报名表</span>
-        </div>
-      </template>
-      <!-- p标签可以换插值语法 -->
-      <div class="intro-text">
-      优艺术作品需为原创，并提交创作说明（包括作品主题和创作过程）。<br>
-      包括剪纸、编织、刺绣、泥塑、综合材料等，平面作品尺寸不超过 40cm×40cm，立体作品尺寸不超过 40cm×40cm×40cm。作者不超过 3 人。
-      </div>
-    </el-card>
-
-    <!-- 1 基础信息 -->
-    <el-card shadow="never" class="section-card sec-1">
-      <template #header><div class="card-title"><span>作品信息</span></div></template>
-
-      <el-form :model="baseForm" label-width="120px" :disabled="readonly" class="base-form">
-        <!-- 作品基本信息 -->
-        <el-row :gutter="24">
-          <el-col :span="8">
-            <el-form-item label="作品名称" required>
-              <el-input v-model="baseForm.artworkName" placeholder="例：《手工艺制作作品》" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="作品类型" required>
-              <el-select v-model="baseForm.performanceType" placeholder="请选择" style="width: 100%">
-                <el-option label="剪纸" value="paperCutting" />
-                <el-option label="编织" value="weaving" />
-                 <el-option label="刺绣" value="stiching" />
-                <el-option label="泥塑" value="mud" />
-                <el-option label="综合材料" value="composite" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="作品形式" required>
-              <el-select v-model="baseForm.artworkForm" placeholder="请选择" style="width: 100%">
-                <el-option label="平面作品" value="flat" />
-                <el-option label="立体设计" value="3d" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="24">
-           <el-col :span="8">
-            <el-form-item label="创作时间" required>
-              <el-date-picker
-                v-model="baseForm.creationTime"
-                type="date"
-                placeholder="选择创作时间"
-                style="width: 100%"
-                format="YYYY-MM-DD"
-                value-format="YYYY-MM-DD"
-              />
-            </el-form-item>
-          </el-col>
-           <el-col :span="8">
-            <el-form-item label="作品长度"  required :error="lengthExceeded ? `长度不能超过${sizeLimit.maxLength}cm` : ''">
-              <div class="dimension">
-                <el-input
-                  v-model.number="baseForm.artworkLength"
-                  type="number"
-                  min="0"
-                  :max="sizeLimit.maxLength"
-                  placeholder="请填写作品长边"
-                  :class="{ 'input-error': lengthExceeded }"
-                />
-                <span class="unit">cm</span>
-              </div>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="作品宽度" required :error="widthExceeded ? `宽度不能超过${sizeLimit.maxWidth}cm` : ''">
-              <div class="dimension">
-                <el-input
-                  v-model.number="baseForm.artworkWidth"
-                  type="number"
-                  min="0"
-                  :max="sizeLimit.maxWidth"
-                  placeholder="请填写作品宽边"
-                  :class="{ 'input-error': widthExceeded }"
-                />
-                <span class="unit">cm</span>
-              </div>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <!-- 作品尺寸 -->
-        <el-row :gutter="24">
-          <el-col :span="24">
-            <div class="size-limit-tip">
-              <span>{{ sizeLimit.description }}</span>
-            </div>
-          </el-col>
-        </el-row>
-        <!-- 联系信息 -->
-        <div class="contact-section">
-          <h4 class="section-title">联系信息</h4>
-          <el-row :gutter="24">
-            <el-col :span="12">
-              <el-form-item label="联系人姓名" required>
-                <el-input v-model="baseForm.contact" placeholder="请填写作品联系人姓名" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="联系人电话" required>
-                <el-input v-model="baseForm.phone" placeholder="请填写作品联系人电话" />
-              </el-form-item>
-            </el-col>
-          </el-row>
-
-          <el-row :gutter="24">
-            <el-col :span="12">
-              <el-form-item label="联系地址" required>
-                <el-input v-model="baseForm.address" placeholder="请填写作品联系地址" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="组别" required>
-                 <el-select v-model="baseForm.group" placeholder="请选择" style="width: 100%">
-                <el-option label="甲组" value="group1" />
-                <el-option label="乙组" value="group2" />
-                 </el-select>
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row :gutter="24">
-            <el-col :span="12">
-              <el-form-item label="指导老师" required>
-                <el-input v-model="baseForm.tutor" placeholder="请填写作品指导老师姓名，仅限一人" />
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </div>
-      </el-form>
-    </el-card>
-    <!-- 2 上传作品 -->
-    <el-card  required shadow="never" class="section-card sec-2">
-      <el-form-item prop="fileList" required label="上传作品" >
-      <el-upload
-        v-model:file-list="fileList"
-        class="upload-block"
-        drag
-        multiple
-        :auto-upload="false"
-        :limit="6"
-        :disabled="readonly"
-        :accept="accepts"
-      >
-        <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
-        <div class="el-upload__text">将文件拖到此处，或 <em>点击上传</em></div>
-        <template #tip>
-          <div class="el-upload__tip">
-            支持：音频（mp3/wav）、乐谱（pdf）、图片（jpg/png，建议≥1200×1200）。为统一展演的正常播放，请使用常见编码格式。每个节目的最终材料以本地打包提交，文件大小不宜超过100MB；不要将多个文件打包；严禁含违规内容；请遵守版权规范。
+      <!-- 顶部说明 -->
+      <el-card shadow="never" class="intro-card">
+        <template #header>
+          <div class="card-title">
+            <el-icon><InfoFilled /></el-icon>
+            <span>手工艺制作作品报名表</span>
           </div>
         </template>
-      </el-upload>
-      </el-form-item>
-    </el-card>
-    <!-- 3 作品简介 -->
-    <el-card shadow="never" class="section-card sec-3">
-      <template #header>
-        <div class="card-title">
-          <span>作品描述</span>
-          <span class="desc-tip">（最多 200 字）</span>
+        <!-- p标签可以换插值语法 -->
+        <div class="intro-text">
+          优艺术作品需为原创，并提交创作说明（包括作品主题和创作过程）。<br />
+          包括剪纸、编织、刺绣、泥塑、综合材料等，平面作品尺寸不超过 40cm×40cm，立体作品尺寸不超过
+          40cm×40cm×40cm。作者不超过 3 人。
         </div>
-      </template>
-      <el-row :gutter="24">
-       <el-form-item prop="fileList"  label="创作说明（包括作品主题和创作过程）" required ></el-form-item>
-       </el-row>
-      <el-input v-model="intro" type="textarea" :rows="7" maxlength="200" show-word-limit placeholder="请填写作品简介" :disabled="readonly" />
+      </el-card>
 
-    </el-card>
-    <!-- 4 花名册 -->
-    <el-card shadow="never" class="section-card sec-4">
-      <template #header><div class="card-title"><span>参赛人员</span></div></template>
-      <RosterBlock class="mt16" title="作者信息" :columns="memberColumns" v-model:rows="members" :readonly="readonly" />
-    </el-card>
+      <!-- 1 基础信息 -->
+      <el-card shadow="never" class="section-card sec-1">
+        <template #header
+          ><div class="card-title"><span>作品信息</span></div></template
+        >
 
-    <!-- 用户阅读须知区 -->
-     <div class="notice">
-      <div class="notice-content">
-        <p style="color: red">请仔细阅读报名须知，确认无误后勾选报名须知，即可进行报名。</p>
-        <el-row :gutter="34">
-          <el-col :span="12">
-            <el-form-item label="报名须知" prop="notice">
-              <el-checkbox v-model="baseForm.notice" required>我已仔细阅读并同意报名须知</el-checkbox>
-            </el-form-item>
-          </el-col>
+        <el-form :model="baseForm" label-width="120px" :disabled="readonly" class="base-form">
+          <!-- 作品基本信息 -->
+          <el-row :gutter="24">
+            <el-col :span="8">
+              <el-form-item label="作品名称" required>
+                <el-input v-model="baseForm.artworkName" placeholder="例：《手工艺制作作品》" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="作品类型" required>
+                <el-select
+                  v-model="baseForm.performanceType"
+                  placeholder="请选择"
+                  style="width: 100%"
+                >
+                  <el-option label="剪纸" value="paperCutting" />
+                  <el-option label="编织" value="weaving" />
+                  <el-option label="刺绣" value="stiching" />
+                  <el-option label="泥塑" value="mud" />
+                  <el-option label="综合材料" value="composite" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="作品形式" required>
+                <el-select v-model="baseForm.artworkForm" placeholder="请选择" style="width: 100%">
+                  <el-option label="平面作品" value="flat" />
+                  <el-option label="立体设计" value="3d" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row :gutter="24">
+            <el-col :span="8">
+              <el-form-item label="创作时间" required>
+                <el-date-picker
+                  v-model="baseForm.creationTime"
+                  type="date"
+                  placeholder="选择创作时间"
+                  style="width: 100%"
+                  format="YYYY-MM-DD"
+                  value-format="YYYY-MM-DD"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item
+                label="作品长度"
+                required
+                :error="lengthExceeded ? `长度不能超过${sizeLimit.maxLength}cm` : ''"
+              >
+                <div class="dimension">
+                  <el-input
+                    v-model.number="baseForm.artworkLength"
+                    type="number"
+                    min="0"
+                    :max="sizeLimit.maxLength"
+                    placeholder="请填写作品长边"
+                    :class="{ 'input-error': lengthExceeded }"
+                  />
+                  <span class="unit">cm</span>
+                </div>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item
+                label="作品宽度"
+                required
+                :error="widthExceeded ? `宽度不能超过${sizeLimit.maxWidth}cm` : ''"
+              >
+                <div class="dimension">
+                  <el-input
+                    v-model.number="baseForm.artworkWidth"
+                    type="number"
+                    min="0"
+                    :max="sizeLimit.maxWidth"
+                    placeholder="请填写作品宽边"
+                    :class="{ 'input-error': widthExceeded }"
+                  />
+                  <span class="unit">cm</span>
+                </div>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+          <!-- 作品尺寸 -->
+          <el-row :gutter="24">
+            <el-col :span="24">
+              <div class="size-limit-tip">
+                <span>{{ sizeLimit.description }}</span>
+              </div>
+            </el-col>
+          </el-row>
+          <!-- 联系信息 -->
+          <div class="contact-section">
+            <h4 class="section-title">联系信息</h4>
+            <el-row :gutter="24">
+              <el-col :span="12">
+                <el-form-item label="联系人姓名" required>
+                  <el-input v-model="baseForm.contact" placeholder="请填写作品联系人姓名" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="联系人电话" required>
+                  <el-input v-model="baseForm.phone" placeholder="请填写作品联系人电话" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-row :gutter="24">
+              <el-col :span="12">
+                <el-form-item label="联系地址" required>
+                  <el-input v-model="baseForm.address" placeholder="请填写作品联系地址" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="组别" required>
+                  <el-select v-model="baseForm.group" placeholder="请选择" style="width: 100%">
+                    <el-option label="甲组" value="group1" />
+                    <el-option label="乙组" value="group2" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="24">
+              <el-col :span="12">
+                <el-form-item label="指导老师" required>
+                  <el-input
+                    v-model="baseForm.tutor"
+                    placeholder="请填写作品指导老师姓名，仅限一人"
+                  />
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </div>
+        </el-form>
+      </el-card>
+      <!-- 2 上传作品 -->
+      <el-card required shadow="never" class="section-card sec-2">
+        <el-form-item prop="fileList" required label="上传作品">
+          <el-upload
+            v-model:file-list="fileList"
+            class="upload-block"
+            drag
+            multiple
+            :auto-upload="false"
+            :limit="6"
+            :disabled="readonly"
+            :accept="accepts"
+          >
+            <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
+            <div class="el-upload__text">将文件拖到此处，或 <em>点击上传</em></div>
+            <template #tip>
+              <div class="el-upload__tip">
+                支持：音频（mp3/wav）、乐谱（pdf）、图片（jpg/png，建议≥1200×1200）。为统一展演的正常播放，请使用常见编码格式。每个节目的最终材料以本地打包提交，文件大小不宜超过100MB；不要将多个文件打包；严禁含违规内容；请遵守版权规范。
+              </div>
+            </template>
+          </el-upload>
+        </el-form-item>
+      </el-card>
+      <!-- 3 作品简介 -->
+      <el-card shadow="never" class="section-card sec-3">
+        <template #header>
+          <div class="card-title">
+            <span>作品描述</span>
+            <span class="desc-tip">（最多 200 字）</span>
+          </div>
+        </template>
+        <el-row :gutter="24">
+          <el-form-item
+            prop="fileList"
+            label="创作说明（包括作品主题和创作过程）"
+            required
+          ></el-form-item>
         </el-row>
+        <el-input
+          v-model="intro"
+          type="textarea"
+          :rows="7"
+          maxlength="200"
+          show-word-limit
+          placeholder="请填写作品简介"
+          :disabled="readonly"
+        />
+      </el-card>
+      <!-- 4 花名册 -->
+      <el-card shadow="never" class="section-card sec-4">
+        <template #header
+          ><div class="card-title"><span>参赛人员</span></div></template
+        >
+        <RosterBlock
+          class="mt16"
+          title="作者信息"
+          :columns="memberColumns"
+          v-model:rows="members"
+          :readonly="readonly"
+        />
+      </el-card>
+
+      <!-- 用户阅读须知区 -->
+      <div class="notice">
+        <div class="notice-content">
+          <p style="color: red">请仔细阅读报名须知，确认无误后勾选报名须知，即可进行报名。</p>
+          <el-row :gutter="34">
+            <el-col :span="12">
+              <el-form-item label="报名须知" prop="notice">
+                <el-checkbox v-model="baseForm.notice" required
+                  >我已仔细阅读并同意报名须知</el-checkbox
+                >
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </div>
       </div>
+      <!-- 操作区 -->
+      <div class="actions">
+        <el-button size="large" @click="onSave" :disabled="readonly">暂存</el-button>
+        <el-button type="primary" size="large" @click="onSubmit">提交报名表</el-button>
       </div>
-    <!-- 操作区 -->
-    <div class="actions">
-      <el-button size="large" @click="onSave" :disabled="readonly">暂存</el-button>
-      <el-button type="primary" size="large" @click="onSubmit">提交报名表</el-button>
-    </div>
     </div>
   </div>
 </template>

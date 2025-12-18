@@ -68,16 +68,7 @@
 import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import * as XLSX from 'xlsx'
-
-type Column = {
-  prop: string
-  label: string
-  width?: number
-  type?: 'text' | 'select'
-  options?: Array<{ label: string; value: string }>
-}
-
-type RosterItem = Record<string, string | number | null>
+import type { Column, RosterItem } from '@/types/roster'
 
 const props = defineProps<{
   title: string
