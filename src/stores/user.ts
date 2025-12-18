@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import type { User, UserRole } from '@/types'
-import { 
-  setUserId, 
-  setUserRole, 
-  setUserToken, 
+import {
+  setUserId,
+  setUserRole,
+  setUserToken,
   setUserPermissions,
   getUserId,
   getUserRole,
@@ -30,13 +30,13 @@ export const useUserStore = defineStore('user', {
 		login(payload: { userId: string; role: UserRole; token?: string; permissions?: string[] }) {
 			this.userId = payload.userId
 			this.role = payload.role
-			this.token = payload.token ?? 'mock-token'
+			this.token = payload.token || null
 			this.permissions = payload.permissions ?? []
-			
+
 			// 使用封装的存储函数
 			setUserId(payload.userId)
 			setUserRole(payload.role)
-			setUserToken(this.token)
+			setUserToken(this.token!)
 			setUserPermissions(this.permissions)
 		},
 		logout() {
@@ -44,7 +44,7 @@ export const useUserStore = defineStore('user', {
 			this.role = null
 			this.token = null
 			this.permissions = []
-			
+
 			// 使用封装的存储函数
 			clearUserStorage()
 		},

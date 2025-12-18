@@ -10,10 +10,15 @@ import {
   accompanimentColumns,
 } from '@/config/tables/user/VocalMusicWorksCatalog'
 import { vocalBaseFormDefaults } from '@/config/forms/user/VocalMusicWorksCatalog'
+import {
+  createVocalMusicWork,
+  getVocalPerformanceCategories,
+} from '@/services/user/VocalMusicWorksCatalog'
+import type { PerformanceCategory } from '@/services/user/VocalMusicWorksCatalog'
 
 // 定义类型接口
 interface BaseForm {
-  performanceType: string
+  performanceType: string | number
   minutes: number
   seconds: number
   song1: string
@@ -72,6 +77,18 @@ const baseForm = reactive<BaseForm>({ ...vocalBaseFormDefaults })
 
 /* ---- 简介 ---- */
 const intro = ref('')
+const categoryOptions = ref<PerformanceCategory[]>([])
+
+// 预加载表演形式分类
+const loadCategories = async () => {
+  const res = await getVocalPerformanceCategories()
+  if (res.code === 200 && Array.isArray(res.data)) {
+    categoryOptions.value = res.data
+  } else {
+    ElMessage.warning('获取表演形式失败，请刷新重试')
+  }
+}
+loadCategories()
 
 /* ---- 上传 ---- */
 const accepts = '.mp3,.wav,.pdf,.jpg,.jpeg,.png'
@@ -138,7 +155,8 @@ const onSubmit = () => {
     return
   }
   //条件限制：包含人数以及时长
-  if (type === 'chorus') {
+  if (type === 1) {
+    // 合唱
     if (durationSec > 480) {
       ElMessage.error('合唱作品时长不能超过8分钟')
       return
@@ -162,7 +180,8 @@ const onSubmit = () => {
       ElMessage.error('请上传合唱谱（PDF）')
       return
     }
-  } else if (type === 'classChorus') {
+  } else if (type === 4) {
+    // 班级合唱
     if (durationSec > 480) {
       ElMessage.error('班级合唱作品时长不能超过8分钟')
       return
@@ -194,7 +213,8 @@ const onSubmit = () => {
       ElMessage.error('请上传合唱谱（PDF）')
       return
     }
-  } else if (type === 'smallChorus' || type === 'singing') {
+  } else if (type === 2 || type === 3) {
+    // 小合唱或表演唱
     if (durationSec > 300) {
       ElMessage.error('作品时长不能超过5分钟')
       return
@@ -220,15 +240,47 @@ const onSubmit = () => {
     rosters: { teachers: teachers.value, members: members.value, accomp: accomp.value },
   }
   emit('submit', payload)
+
+  // 调用后端API提交数据
+  // 注意：此处仅为示例，实际提交数据结构需要根据后端接口要求进行调整
+  // 假设后端需要的 performance_form 和 group 是数字类型，这里需要进行转换映射
+  const groupMap: Record<string, number> = {
+    group1: 1, // 甲组
+    group2: 2, // 乙组
+  }
+
+  createVocalMusicWork({
+    title: baseForm.song1, // 假设使用第一首曲目名称作为作品标题
+    description: intro.value,
+    duration_minutes: baseForm.minutes,
+    duration_seconds: baseForm.seconds,
+    contact_name: baseForm.contact,
+    contact_phone: baseForm.phone,
+    contact_address: baseForm.address,
+    performer_count: baseForm.performerCount || 0,
+    has_read_terms: baseForm.notice,
+    performance_form: Number(baseForm.performanceType),
+    group: groupMap[baseForm.group] || 0,
+    // 文件上传通常需要先上传文件获取 URL，这里暂留空或根据实际逻辑处理
+    video_file: null,
+    score_file: null,
+  }).then((res) => {
+    if (res.code === 200) {
+      ElMessage.success('报名成功')
+      // 可以跳转或重置表单
+    } else {
+      ElMessage.error(res.message || '报名失败')
+    }
+  })
 }
 const durationLimit = computed(() =>
-  baseForm.performanceType === 'smallChorus' || baseForm.performanceType === 'singing' ? 300 : 480,
+  baseForm.performanceType === 2 || baseForm.performanceType === 3 ? 300 : 480,
 )
 const durationExceeded = computed(
   () => baseForm.minutes * 60 + baseForm.seconds > durationLimit.value,
 )
 const durationErrorText = computed(() =>
-  baseForm.performanceType === 'smallChorus' || baseForm.performanceType === 'singing'
+  baseForm.performanceType === 2 || baseForm.performanceType === 3
     ? '作品时长不能超过5分钟'
     : '作品时长不能超过8分钟',
 )
@@ -272,10 +324,12 @@ const durationErrorText = computed(() =>
                   placeholder="请选择表演形式"
                   style="width: 100%"
                 >
-                  <el-option label="合唱" value="chorus" />
-                  <el-option label="小合唱" value="smallChorus" />
-                  <el-option label="表演唱" value="singing" />
-                  <el-option label="班级合唱" value="classChorus" />
+                  <el-option
+                    v-for="item in categoryOptions"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  />
                 </el-select>
               </el-form-item>
             </el-col>

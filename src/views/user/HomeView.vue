@@ -512,28 +512,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-.export-section {
-  .export-desc {
-    color: #606266;
-    margin-bottom: 24px;
-    line-height: 1.6;
-  }
-}
-
-.toolbar {
-  margin-bottom: 16px;
-
-  .toolbar-info {
-    text-align: right;
-    color: #606266;
-    line-height: 32px;
-  }
-}
-
-.pagination-wrapper {
-  margin-top: 16px;
-  display: flex;
-  justify-content: center;
-}
+@use '@/assets/styles/user_styles/HomeView.scss';
 </style>
 

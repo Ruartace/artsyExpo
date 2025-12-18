@@ -29,7 +29,6 @@ const router = createRouter({
     // 用户端
     {
       path: '/user',
-      name: 'user',
       component: () => import('@/layouts/DefaultLayout.vue'),
       meta: { roles: ['user'] },
       children: [
