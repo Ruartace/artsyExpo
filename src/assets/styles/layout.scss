@@ -160,30 +160,31 @@
     align-items: center; // 垂直居中
   }
 
-  // 标签页项 - 未选中状态
+  // 标签页项
   :deep(.el-tabs__item) {
-    min-width: $tabs-item-min-width;
-    max-width: $tabs-item-max-width;
     height: $tabs-item-height;
-    line-height: 30px;
-    padding: $tabs-item-padding;
-    margin-left: $tabs-item-margin-left;
-    background-color: $tabs-item-bg;
+    line-height: $tabs-item-height;
     border: none;
-    color: $tabs-item-color;
-    font-size: $tabs-item-font-size;
-    transition: all 0.2s ease;
-    position: relative;
-    opacity: 0;
-    filter: blur(16px);
-    animation: getUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  }
+    border-radius: 4px;
+    margin-left: $tabs-item-margin-left;
+    background-color: transparent;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+    color: $text-regular;
+    font-size: $font-size-sm;
+    padding: $tabs-item-padding !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 240px; // 增加最大宽度以容纳长标题
 
-  // 标签页项 - 悬停状态
-  :deep(.el-tabs__item:hover) {
-    background-color: $tabs-item-bg;
-    box-shadow: inset 2px 0 0 $tabs-hover-border;
-    transition: all 0.2s ease;
+    &:hover {
+      background-color: #e6f7ff;
+      color: $primary-color;
+    }
+
+    &:first-child {
+      margin-left: 0;
+    }
   }
 
   // 标签页项 - 选中状态
@@ -195,6 +196,7 @@
     font-weight: $font-weight-medium;
     z-index: 1;
     animation: duration 0.35s linear forwards;
+    padding-right: 28px !important; // 为关闭图标预留空间
   }
 
   // 关闭图标样式
@@ -207,6 +209,9 @@
     font-size: 12px;
     margin-left: 8px;
     transition: all 0.2s ease;
+    flex-shrink: 0; // 防止图标被压缩
+    position: relative; // 确保图标层级
+    z-index: 2;
   }
 
   :deep(.el-tabs__item .el-icon-close:hover) {

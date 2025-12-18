@@ -44,7 +44,9 @@ export function useTabs() {
    * @param path 标签页路径
    */
   const removeTab = (path: string) => {
-    const index = tabs.value.findIndex(t => t.path === path)
+    // 解码路径，确保匹配正确
+    const decodedPath = decodeURIComponent(path)
+    const index = tabs.value.findIndex(t => decodeURIComponent(t.path) === decodedPath)
     if (index === -1) return
 
     tabs.value.splice(index, 1)
