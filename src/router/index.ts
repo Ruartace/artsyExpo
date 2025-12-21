@@ -11,7 +11,7 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: () => import('@/views/loginView.vue'),
+      component: () => import('@/views/loginModle.vue'),
       meta: { layout: 'blank' },
     },
     {
@@ -45,7 +45,7 @@ const router = createRouter({
           component: () => import('@/views/user/DanceWorkCatalog.vue'),
         },
         {
-          path: 'VocalMusic',
+          path: 'VocalMusic/:id?',
           name: '声乐作品报名',
           component: () => import('@/views/user/VocalMusicWorksCatalog.vue'),
         },

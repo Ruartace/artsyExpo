@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { defineEmits, defineProps } from 'vue'
-
 interface Props {
   keyword: string
   importable?: boolean
@@ -31,7 +29,13 @@ function onSearch() {
       <el-button v-if="downloadable" type="primary" @click="$emit('download')">下载模板</el-button>
       <el-button v-if="addable" type="primary" @click="$emit('add')">添加一行</el-button>
       <el-button v-if="clearable" type="danger" @click="$emit('clear')">清空</el-button>
-      <el-input :model-value="keyword" @update:model-value="$emit('update:keyword', $event)" placeholder="模糊搜索" clearable class="short-input" />
+      <el-input
+        :model-value="keyword"
+        @update:model-value="$emit('update:keyword', $event)"
+        placeholder="模糊搜索"
+        clearable
+        class="short-input"
+      />
       <el-button type="primary" @click="onSearch">搜索</el-button>
     </el-space>
   </div>
@@ -41,7 +45,7 @@ function onSearch() {
 .action-toolbar {
   margin: 8px 0;
 }
-.short-input { width: 300px; }
+.short-input {
+  width: 300px;
+}
 </style>
-
-

@@ -26,7 +26,7 @@ function toQuery(params?: Record<string, unknown>) {
 }
 
 async function request<T>(
-  method: 'GET' | 'POST',
+  method: 'GET' | 'POST' | 'DELETE' | 'PUT',
   url: string,
   opts: {
     params?: Record<string, unknown>
@@ -39,7 +39,9 @@ async function request<T>(
   const fullUrl = joinUrl(BASE_URL, url) + (method === 'GET' ? toQuery(opts.params) : '')
   const headers: Record<string, string> = {
     Accept: 'application/json',
-    ...(method === 'POST' ? { 'Content-Type': 'application/json' } : {}),
+    ...(method !== 'GET' && !(opts.body instanceof FormData)
+      ? { 'Content-Type': 'application/json' }
+      : {}),
     ...(opts.headers || {}),
   }
 
@@ -56,7 +58,12 @@ async function request<T>(
     const res = await fetch(fullUrl, {
       method,
       headers,
-      body: method === 'POST' && opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+      body:
+        method !== 'GET' && opts.body !== undefined
+          ? opts.body instanceof FormData
+            ? opts.body
+            : JSON.stringify(opts.body)
+          : undefined,
       signal: controller.signal,
     })
     clearTimeout(timer)
@@ -112,6 +119,52 @@ export async function httpPost<T>(
   opts?: { skipAuth?: boolean },
 ): Promise<HttpResponse<T>> {
   return request<T>('POST', url, { body, headers, ...opts })
+}
+
+export async function httpPut<T>(
+  url: string,
+  body?: unknown,
+  headers?: Record<string, string>,
+  opts?: { skipAuth?: boolean },
+): Promise<HttpResponse<T>> {
+  return request<T>('PUT', url, { body, headers, ...opts })
+}
+
+export async function httpDelete<T>(
+  url: string,
+  body?: unknown,
+  headers?: Record<string, string>,
+  opts?: { skipAuth?: boolean },
+): Promise<HttpResponse<T>> {
+  return request<T>('DELETE', url, { body, headers, ...opts })
+}
+
+export async function downloadFile(url: string, filename: string): Promise<boolean> {
+  const fullUrl = joinUrl(BASE_URL, url)
+  const headers: Record<string, string> = {}
+  const token = getAuthToken()
+  if (token) headers.Authorization = `Token ${token}`
+
+  try {
+    const res = await fetch(fullUrl, { method: 'GET', headers })
+    if (res.ok) {
+      const blob = await res.blob()
+      const u = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = u
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(u)
+      return true
+    }
+    console.error('Download failed', res.status, res.statusText)
+    return false
+  } catch (e) {
+    console.error('Download failed', e)
+    return false
+  }
 }
 
 export async function checkTunnel(path: string = '/') {

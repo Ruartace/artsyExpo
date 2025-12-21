@@ -27,7 +27,16 @@ export function setStorageItem(key: string, value: unknown): void {
 export function getStorageItem<T>(key: string, defaultValue: T): T {
   try {
     const item = localStorage.getItem(key)
-    return item ? JSON.parse(item) : defaultValue
+    if (!item) return defaultValue
+    
+    // Attempt to parse JSON. If it fails, return the raw string if T allows string
+    try {
+        return JSON.parse(item)
+    } catch {
+        // If parsing fails, it might be a raw string stored directly
+        // Check if T can be a string, or just return as is if type assertion allows
+        return item as unknown as T
+    }
   } catch (error) {
     console.error('获取本地存储失败:', error)
     return defaultValue

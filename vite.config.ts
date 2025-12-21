@@ -7,24 +7,21 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
-  plugins: [
-    vue(),
-    vueJsx(),
-    ...(command === 'serve' ? [vueDevTools()] : []),
-  ],
+  plugins: [vue(), vueJsx(), ...(command === 'serve' ? [vueDevTools()] : [])],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
   server: {
     proxy: {
       '/api': {
-        target: 'http://u49dd496.natappfree.cc',
+        target: 'http://c697294a.natappfree.cc',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),
-      }
-    }
-  }
+      },
+    },
+  },
 }))
+// Trigger restart

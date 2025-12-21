@@ -1,9 +1,10 @@
-
 <script lang="ts" setup name="VoiceRegistrationForm">
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import RosterBlock from '@/components/RosterBlock.vue'
 import { InfoFilled, UploadFilled } from '@element-plus/icons-vue'
+import { getGroupCategories } from '@/services/user/VocalMusicWorksCatalog'
+import type { GroupCategory } from '@/services/user/VocalMusicWorksCatalog'
 
 // 定义类型接口
 interface BaseForm {
@@ -19,7 +20,7 @@ interface BaseForm {
   contact: string
   phone: string
   address: string
-  group: string
+  group: number | string
   leader: string
   tutor: string
   notice: boolean
@@ -79,7 +80,7 @@ const baseForm = reactive<BaseForm>({
   leader: '',
   tutor: '',
   notice: false,
-  chorusCount: undefined
+  chorusCount: undefined,
 })
 
 /* ---- 简介 ---- */
@@ -100,13 +101,22 @@ type Column = {
 
 const teacherColumns: Column[] = [
   { prop: 'name', label: '姓名', width: 120 },
-  { prop: 'gender', label: '性别', width: 100, type: 'select', options: [{ label:'男', value:'male' }, { label:'女', value:'female' }] },
+  {
+    prop: 'gender',
+    label: '性别',
+    width: 100,
+    type: 'select',
+    options: [
+      { label: '男', value: 'male' },
+      { label: '女', value: 'female' },
+    ],
+  },
   { prop: 'title', label: '职称/专业', width: 160 },
   { prop: 'nation', label: '民族', width: 100 },
   { prop: 'idNo', label: '身份证号', width: 200 },
   { prop: 'school', label: '学校名称', width: 160 },
   { prop: 'org', label: '所属院系/部门', width: 180 },
-  { prop: 'phone', label: '联系方式', width: 160 }
+  { prop: 'phone', label: '联系方式', width: 160 },
 ]
 
 const memberColumns: Column[] = [
@@ -115,11 +125,20 @@ const memberColumns: Column[] = [
   { prop: 'nation', label: '民族', width: 100 },
   { prop: 'major', label: '专业类别', width: 160 },
   { prop: 'grade', label: '年级', width: 100 },
-  { prop: 'gender', label: '性别', width: 100, type: 'select', options: [{ label:'男', value:'male' }, { label:'女', value:'female' }] },
+  {
+    prop: 'gender',
+    label: '性别',
+    width: 100,
+    type: 'select',
+    options: [
+      { label: '男', value: 'male' },
+      { label: '女', value: 'female' },
+    ],
+  },
   { prop: 'region', label: '所在地区', width: 140 },
   { prop: 'school', label: '学校名称', width: 160 },
   { prop: 'dept', label: '所在院系/部门', width: 180 },
-  { prop: 'phone', label: '联系方式', width: 160 }
+  { prop: 'phone', label: '联系方式', width: 160 },
 ]
 
 const accompColumns: Column[] = [
@@ -128,17 +147,41 @@ const accompColumns: Column[] = [
   { prop: 'major', label: '专业', width: 160 },
   { prop: 'age', label: '年龄', width: 100 },
   { prop: 'nation', label: '民族', width: 100 },
-  { prop: 'gender', label: '性别', width: 100, type: 'select', options: [{ label:'男', value:'male' }, { label:'女', value:'female' }] },
+  {
+    prop: 'gender',
+    label: '性别',
+    width: 100,
+    type: 'select',
+    options: [
+      { label: '男', value: 'male' },
+      { label: '女', value: 'female' },
+    ],
+  },
   { prop: 'region', label: '所在地区', width: 140 },
   { prop: 'school', label: '学校名称', width: 160 },
   { prop: 'dept', label: '所在院系/部门', width: 180 },
-  { prop: 'phone', label: '联系方式', width: 160 }
+  { prop: 'phone', label: '联系方式', width: 160 },
 ]
 
 /* ---- 三个表数据 ---- */
 const teachers = ref<RosterItem[]>([])
 const members = ref<RosterItem[]>([])
 const accomp = ref<RosterItem[]>([])
+
+const groupOptions = ref<GroupCategory[]>([])
+
+onMounted(async () => {
+  try {
+    const res = await getGroupCategories()
+    if (res.code === 200) {
+      groupOptions.value = res.data
+    } else {
+      ElMessage.warning('获取组别信息失败')
+    }
+  } catch (error) {
+    console.error('获取组别失败:', error)
+  }
+})
 
 /* ---- 行为：暂存 / 提交 ---- */
 const onSave = () => {
@@ -150,8 +193,8 @@ const onSave = () => {
     rosters: {
       teachers: teachers.value,
       members: members.value,
-      accomp: accomp.value
-    }
+      accomp: accomp.value,
+    },
   }
 
   try {
@@ -192,8 +235,8 @@ const onSubmit = () => {
   const payload: SubmitPayload = {
     base: { ...baseForm, durationSec: baseForm.minutes * 60 + baseForm.seconds },
     intro: intro.value,
-    files: fileList.value.map(f => ({ name: f.name, size: f.size, type: f.type })),
-    rosters: { teachers: teachers.value, members: members.value, accomp: accomp.value }
+    files: fileList.value.map((f) => ({ name: f.name, size: f.size, type: f.type })),
+    rosters: { teachers: teachers.value, members: members.value, accomp: accomp.value },
   }
   emit('submit', payload)
 }
@@ -217,7 +260,9 @@ const onSubmit = () => {
 
     <!-- 1 基础信息 -->
     <el-card shadow="never" class="section-card sec-1">
-      <template #header><div class="card-title"><span>作品信息</span></div></template>
+      <template #header
+        ><div class="card-title"><span>作品信息</span></div></template
+      >
       <div class="sec-watermark">1</div>
 
       <el-form :model="baseForm" label-width="120px" :disabled="readonly" class="base-form">
@@ -225,7 +270,11 @@ const onSubmit = () => {
         <el-row :gutter="24">
           <el-col :span="12">
             <el-form-item label="表演形式">
-              <el-select v-model="baseForm.performanceType" placeholder="请选择" style="width: 100%">
+              <el-select
+                v-model="baseForm.performanceType"
+                placeholder="请选择"
+                style="width: 100%"
+              >
                 <el-option label="合唱" value="chorus" />
                 <el-option label="小合唱/表演唱" value="ensemble" />
                 <el-option label="独唱" value="solo" />
@@ -235,9 +284,20 @@ const onSubmit = () => {
           <el-col :span="12">
             <el-form-item label="作品时长">
               <div class="duration">
-                <el-input v-model.number="baseForm.minutes" type="number" min="0" style="width:80px" />
+                <el-input
+                  v-model.number="baseForm.minutes"
+                  type="number"
+                  min="0"
+                  style="width: 80px"
+                />
                 <span class="unit">分</span>
-                <el-input v-model.number="baseForm.seconds" type="number" min="0" max="59" style="width:80px" />
+                <el-input
+                  v-model.number="baseForm.seconds"
+                  type="number"
+                  min="0"
+                  max="59"
+                  style="width: 80px"
+                />
                 <span class="unit">秒</span>
               </div>
             </el-form-item>
@@ -248,7 +308,12 @@ const onSubmit = () => {
         <el-row :gutter="24" v-if="baseForm.performanceType === 'chorus'">
           <el-col :span="12">
             <el-form-item label="合唱人数">
-              <el-input v-model.number="baseForm.chorusCount" type="number" min="1" placeholder="请输入合唱人数" />
+              <el-input
+                v-model.number="baseForm.chorusCount"
+                type="number"
+                min="1"
+                placeholder="请输入合唱人数"
+              />
             </el-form-item>
           </el-col>
         </el-row>
@@ -332,11 +397,14 @@ const onSubmit = () => {
             </el-col>
             <el-col :span="12">
               <el-form-item label="组别">
-                 <el-select v-model="baseForm.group" placeholder="请选择" style="width: 100%">
-                <el-option label="甲组(非专业组)" value="group1" />
-                <el-option label="乙组" value="group2" />
-                <el-option label="丁组" value="group3" />
-                 </el-select>
+                <el-select v-model="baseForm.group" placeholder="请选择" style="width: 100%">
+                  <el-option
+                    v-for="item in groupOptions"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  />
+                </el-select>
               </el-form-item>
             </el-col>
           </el-row>
@@ -353,12 +421,22 @@ const onSubmit = () => {
         </div>
       </template>
       <div class="sec-watermark">2</div>
-      <el-input v-model="intro" type="textarea" :rows="7" maxlength="200" show-word-limit placeholder="请填写作品简介" :disabled="readonly" />
+      <el-input
+        v-model="intro"
+        type="textarea"
+        :rows="7"
+        maxlength="200"
+        show-word-limit
+        placeholder="请填写作品简介"
+        :disabled="readonly"
+      />
     </el-card>
 
     <!-- 3 上传作品 -->
     <el-card shadow="never" class="section-card sec-3">
-      <template #header><div class="card-title"><span>上传作品</span></div></template>
+      <template #header
+        ><div class="card-title"><span>上传作品</span></div></template
+      >
       <div class="sec-watermark">3</div>
       <el-upload
         v-model:file-list="fileList"
@@ -382,26 +460,47 @@ const onSubmit = () => {
 
     <!-- 4 花名册 -->
     <el-card shadow="never" class="section-card sec-4">
-      <template #header><div class="card-title"><span>报名花名册</span></div></template>
+      <template #header
+        ><div class="card-title"><span>报名花名册</span></div></template
+      >
       <div class="sec-watermark">4</div>
-      <RosterBlock title="指导教师" :columns="teacherColumns" v-model:rows="teachers" :readonly="readonly" />
-      <RosterBlock class="mt16" title="参赛人员" :columns="memberColumns" v-model:rows="members" :readonly="readonly" />
-      <RosterBlock class="mt16" title="指挥（可以为本校老师）" :columns="accompColumns" v-model:rows="accomp" :readonly="readonly" />
+      <RosterBlock
+        title="指导教师"
+        :columns="teacherColumns"
+        v-model:rows="teachers"
+        :readonly="readonly"
+      />
+      <RosterBlock
+        class="mt16"
+        title="参赛人员"
+        :columns="memberColumns"
+        v-model:rows="members"
+        :readonly="readonly"
+      />
+      <RosterBlock
+        class="mt16"
+        title="指挥（可以为本校老师）"
+        :columns="accompColumns"
+        v-model:rows="accomp"
+        :readonly="readonly"
+      />
     </el-card>
 
     <!-- 用户阅读须知区 -->
-     <div class="notice">
+    <div class="notice">
       <div class="notice-content">
         <p style="color: red">请仔细阅读报名须知，确认无误后勾选报名须知，即可进行报名。</p>
         <el-row :gutter="34">
           <el-col :span="12">
             <el-form-item label="报名须知" prop="notice">
-              <el-checkbox v-model="baseForm.notice" required>我已仔细阅读并同意报名须知</el-checkbox>
+              <el-checkbox v-model="baseForm.notice" required
+                >我已仔细阅读并同意报名须知</el-checkbox
+              >
             </el-form-item>
           </el-col>
         </el-row>
       </div>
-      </div>
+    </div>
     <!-- 操作区 -->
     <div class="actions">
       <el-button size="large" @click="onSave" :disabled="readonly">暂存</el-button>

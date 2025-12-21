@@ -8,13 +8,13 @@ export function setupRouterGuards(router: Router) {
     const userStore = useUserStore()
 
     // TEMPORARY: Auto-login as user to bypass auth
-    if (!userStore.role) {
-      userStore.login({
-        userId: 'temp-user',
-        role: 'user',
-        token: 'temp-token',
-      })
-    }
+    // if (!userStore.role) {
+    //   userStore.login({
+    //     userId: 'temp-user',
+    //     role: 'user',
+    //     token: 'temp-token',
+    //   })
+    // }
 
     if (whiteList.includes(to.path)) return true
     if (!userStore.role) return { path: '/login', query: { redirect: to.fullPath } }
