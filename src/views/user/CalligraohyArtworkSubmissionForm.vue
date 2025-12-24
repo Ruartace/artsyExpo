@@ -1,10 +1,27 @@
 <script lang="ts" setup name="CalligraohyArtworkSubmissionForm">
-import { reactive, ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { reactive, ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import RosterBlock from '@/components/RosterBlock.vue'
 import { InfoFilled, UploadFilled } from '@element-plus/icons-vue'
 import { baseFormDefaults } from '@/config/forms/user/CalligraohyArtworkSubmissionForm'
 import { memberColumns } from '@/config/tables/user/CalligraohyArtworkSubmissionForm'
+import {
+  saveCalligraphySubmission,
+  getCalligraphySubmissionList,
+  submitCalligraphySubmission,
+  uploadCalligraphyFile,
+  getCalligraphyCategories,
+  getGroupCategories,
+  addCalligraphyAuthor,
+  deleteCalligraphyParticipant,
+  getCalligraphyParticipants,
+} from '@/services/user/CalligraohyArtworkSubmissionForm'
+import type {
+  CalligraphyCategory,
+  GroupCategory,
+  CalligraphySubmission,
+} from '@/services/user/CalligraohyArtworkSubmissionForm'
 
 // 定义类型接口
 interface BaseForm {
@@ -32,6 +49,8 @@ interface FileItem {
   name: string
   size: number
   type?: string
+  raw?: File
+  url?: string
 }
 
 interface RosterItem {
@@ -47,6 +66,8 @@ interface RosterItem {
   school?: string
   dept?: string
   instrument?: string
+  // Extend for local tracking
+  server_id?: number
 }
 
 interface SubmitPayload {
@@ -61,7 +82,14 @@ interface SubmitPayload {
 }
 
 defineProps<{ readonly?: boolean }>()
-const emit = defineEmits<{ (e: 'submit', payload: SubmitPayload): void }>()
+defineEmits<{ (e: 'submit', payload: SubmitPayload): void }>()
+
+/* ---- 状态 ---- */
+const submissionId = ref<number | string | null>(null)
+const categoryOptions = ref<CalligraphyCategory[]>([])
+const groupOptions = ref<GroupCategory[]>([])
+const existingParticipantIds = ref<number[]>([])
+const route = useRoute()
 
 /* ---- 基础信息 ---- */
 const baseForm = reactive<BaseForm>({
@@ -73,70 +101,276 @@ const intro = ref('')
 
 /* ---- 上传 ---- */
 const accepts = '.mp3,.wav,.pdf,.jpg,.jpeg,.png'
-const fileList = ref<FileItem[]>([])
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const fileList = ref<any[]>([]) // Use any to match element-plus file type
 
 /* ---- 表数据 ---- */
 const members = ref<RosterItem[]>([])
 
-/* ---- 行为：暂存 / 提交 ---- */
-const onSave = () => {
-  // 暂存当前表单数据到本地存储
-  const saveData = {
-    base: baseForm,
-    intro: intro.value,
-    files: fileList.value,
-    rosters: {
-      members: members.value,
-    },
+/* ---- 辅助函数 ---- */
+function getAgeFromIdCard(idCard: string): number {
+  if (!idCard || idCard.length < 10) return 0
+  const yearStr = idCard.substring(6, 10)
+  const year = parseInt(yearStr)
+  if (isNaN(year)) return 0
+  const currentYear = new Date().getFullYear()
+  return currentYear - year
+}
+
+// 填充表单数据
+const fillFormData = async (existing: CalligraphySubmission) => {
+  submissionId.value = existing.id
+
+  // 填充表单
+  baseForm.artworkName = existing.title
+  // 兼容处理：优先匹配 code，如果不行匹配 name
+  const matchedCategory = categoryOptions.value.find(
+    (c) => c.id === existing.calligraphy_type_id || c.id === existing.performance_form_id,
+  )
+  baseForm.performanceType =
+    matchedCategory?.code ||
+    matchedCategory?.name ||
+    existing.calligraphy_type_name ||
+    existing.performance_form ||
+    existing.calligraphy_type_id?.toString() ||
+    existing.performance_form_id?.toString() ||
+    ''
+
+  baseForm.artworkLength = existing.height_cm ?? existing.artwork_length ?? null
+  baseForm.artworkWidth = existing.width_cm ?? existing.artwork_width ?? null
+  baseForm.creationTime = existing.creation_time || existing.creation_date || ''
+  baseForm.contact = existing.contact_name
+  baseForm.phone = existing.contact_phone
+  baseForm.address = existing.contact_address
+
+  const matchedGroup = groupOptions.value.find(
+    (g) => g.id === existing.group_id || g.name === existing.group_name,
+  )
+  baseForm.group =
+    matchedGroup?.code ||
+    matchedGroup?.name ||
+    existing.group_name ||
+    existing.group ||
+    existing.group_id?.toString() ||
+    ''
+
+  baseForm.tutor = existing.instructor_name || existing.tutor_name || ''
+  baseForm.notice = existing.has_read_terms
+  intro.value = existing.description
+
+  // 填充图片 (如果 image_file 存在)
+  if (existing.image_file || existing.artwork_file) {
+    const fileUrl = existing.artwork_file || existing.image_file
+    // 这里只是简单的显示，实际上可能需要处理成 FileItem
+    fileList.value = [
+      {
+        name: fileUrl?.split('/').pop() || 'uploaded-file',
+        url: fileUrl,
+      },
+    ]
   }
 
-  try {
-    localStorage.setItem('voiceFormDraft', JSON.stringify(saveData))
-    ElMessage.success('表单已暂存成功')
-  } catch (error) {
-    console.error('暂存失败:', error)
-    ElMessage.error('暂存失败，请重试')
+  // 4. 获取相关人员
+  const partRes = await getCalligraphyParticipants(existing.id)
+  if (partRes.data) {
+    existingParticipantIds.value = partRes.data.map((p) => p.id)
+    members.value = partRes.data.map((p) => ({
+      name: p.name,
+      gender: (p.gender as 'male' | 'female') || undefined,
+      idNo: p.id_card,
+      nation: p.ethnicity,
+      phone: p.contact || undefined,
+      school: p.school,
+      server_id: p.id,
+    }))
   }
 }
-// 重置功能待商议
-// const onReset = () => {
-//   baseForm.performanceType = 'chorus'
-//   baseForm.minutes = 0
-//   baseForm.seconds = 0
-//   baseForm.performerCount = 0
-//   baseForm.song1 = ''
-//   baseForm.song2 = ''
-//   baseForm.song1HasChinese = true
-//   baseForm.song1IsOriginal = false
-//   baseForm.song2HasChinese = true
-//   baseForm.song2IsOriginal = false
-//   baseForm.contact = ''
-//   baseForm.phone = ''
-//   baseForm.address = ''
-//   baseForm.group = ''
-//   baseForm.leader = ''
-//   baseForm.tutor = ''
-//   baseForm.notice = false
-//   intro.value = ''
-//   fileList.value = []
-//   teachers.value = []
-//   members.value = []
-//   accomp.value = []
-// }
 
-const onSubmit = () => {
-  const payload: SubmitPayload = {
-    base: { ...baseForm, durationSec: 0 },
-    intro: intro.value,
-    files: fileList.value.map((f) => ({ name: f.name, size: f.size, type: f.type })),
-    rosters: { teachers: [], members: members.value, accomp: [] },
+/* ---- 初始化 ---- */
+onMounted(async () => {
+  try {
+    // 1. 获取分类
+    const catRes = await getCalligraphyCategories()
+    if (catRes.data) {
+      categoryOptions.value = catRes.data
+    }
+
+    // 2. 获取组别
+    const groupRes = await getGroupCategories()
+    if (groupRes.data) {
+      groupOptions.value = groupRes.data
+    }
+
+    // 3. 尝试恢复草稿或获取指定ID的报名表
+    const routeId = route.params.id
+    const id = Array.isArray(routeId) ? routeId[0] : routeId
+
+    // 获取列表
+    const listRes = await getCalligraphySubmissionList()
+
+    if (id) {
+      // 从列表中查找指定ID
+      if (listRes.data) {
+        const existing = listRes.data.find((item) => item.id == Number(id))
+        if (existing) {
+          await fillFormData(existing)
+        }
+      }
+    } else {
+      // 没有ID，查找草稿
+      if (listRes.data && listRes.data.length > 0) {
+        // 查找最新且状态为 draft 的
+        const drafts = listRes.data.filter((item) => item.status === 'draft')
+        if (drafts.length > 0) {
+          // 取最新的
+          const latestData = drafts.reduce((prev, current) => {
+            return prev.id > current.id ? prev : current
+          })
+
+          try {
+            await ElMessageBox.confirm(
+              '检测到您有未提交的草稿，是否恢复上次填写的内容？',
+              '恢复草稿',
+              {
+                confirmButtonText: '恢复',
+                cancelButtonText: '取消',
+                type: 'info',
+              },
+            )
+            await fillFormData(latestData)
+            ElMessage.success('已恢复暂存信息')
+          } catch {
+            ElMessage.info('已取消恢复，您可以重新填写')
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('初始化数据失败:', error)
+    // ElMessage.error('获取数据失败')
   }
-  emit('submit', payload)
+})
+
+/* ---- 行为：暂存 / 提交 ---- */
+const saveForm = async () => {
+  // 查找对应的 ID
+  const selectedCategory = categoryOptions.value.find(
+    (c) => c.code === baseForm.performanceType || c.name === baseForm.performanceType,
+  )
+  const selectedGroup = groupOptions.value.find(
+    (g) => g.code === baseForm.group || g.name === baseForm.group,
+  )
+
+  // 1. 保存基本信息
+  const payload = {
+    id: submissionId.value || undefined,
+    title: baseForm.artworkName,
+    description: intro.value,
+    height_cm: baseForm.artworkLength,
+    width_cm: baseForm.artworkWidth,
+    creation_time: baseForm.creationTime,
+    contact_name: baseForm.contact,
+    contact_phone: baseForm.phone,
+    contact_address: baseForm.address,
+    has_read_terms: baseForm.notice,
+    calligraphy_type_name: baseForm.performanceType,
+    calligraphy_type_id: selectedCategory?.id,
+    group_name: baseForm.group,
+    group_id: selectedGroup?.id,
+    instructor_name: baseForm.tutor,
+  }
+
+  const res = await saveCalligraphySubmission(payload)
+  if (res.code !== 200 && res.code !== 201) {
+    throw new Error(res.message || '保存失败')
+  }
+
+  const newId = res.data.id
+  submissionId.value = newId
+
+  // 2. 处理文件上传
+  // 筛选出新上传的文件 (没有 url 属性或者 raw 属性存在的)
+  const newFiles = fileList.value.filter((f) => f.raw)
+  for (const f of newFiles) {
+    await uploadCalligraphyFile(newId, f.raw)
+  }
+
+  // 3. 处理人员信息 (全量同步：先删除旧的，再添加新的)
+  // 删除旧的
+  if (existingParticipantIds.value.length > 0) {
+    for (const pid of existingParticipantIds.value) {
+      try {
+        await deleteCalligraphyParticipant(pid)
+      } catch (e) {
+        console.warn('删除人员失败', pid, e)
+      }
+    }
+    existingParticipantIds.value = []
+  }
+
+  // 添加新的
+  const newParticipantIds: number[] = []
+  for (const m of members.value) {
+    if (!m.name) continue
+    const pData = {
+      name: m.name,
+      gender: m.gender || 'male',
+      id_card: m.idNo || '',
+      ethnicity: m.nation || '',
+      age: getAgeFromIdCard(m.idNo || ''),
+      contact: m.phone || '',
+      role: 'author',
+      school: m.school,
+    }
+    const pRes = await addCalligraphyAuthor(newId, pData)
+    if (pRes.data) {
+      newParticipantIds.push(pRes.data.id)
+    }
+  }
+  existingParticipantIds.value = newParticipantIds
+
+  return newId
+}
+
+const onSave = async () => {
+  try {
+    await saveForm()
+    ElMessage.success('暂存成功')
+  } catch (error) {
+    console.error('暂存失败:', error)
+    ElMessage.error('暂存失败，请检查填写信息')
+  }
+}
+
+const onSubmit = async () => {
+  if (!baseForm.notice) {
+    ElMessage.warning('请先阅读并同意报名须知')
+    return
+  }
+  try {
+    // 先保存所有信息
+    const id = await saveForm()
+    // 再提交
+    await submitCalligraphySubmission(id)
+    ElMessage.success('提交成功')
+    // 可以在这里跳转或刷新状态
+  } catch (error) {
+    console.error('提交失败:', error)
+    ElMessage.error('提交失败，请重试')
+  }
 }
 
 /* ---- 尺寸限制计算属性 ---- */
 const sizeLimit = computed(() => {
-  if (baseForm.performanceType === 'calligraphy' || baseForm.performanceType === 'carving') {
+  // 兼容 code 和 name 判断
+  const type = baseForm.performanceType
+  if (
+    type === 'calligraphy' ||
+    type === 'carving' ||
+    type === '书法' ||
+    type === '篆刻' ||
+    type === 'seal_carving'
+  ) {
     return {
       maxLength: 138,
       maxWidth: 69,
@@ -151,10 +385,12 @@ const sizeLimit = computed(() => {
 })
 
 const lengthExceeded = computed(() => {
+  if (sizeLimit.value.maxLength === 0) return false
   return baseForm.artworkLength !== null && baseForm.artworkLength > sizeLimit.value.maxLength
 })
 
 const widthExceeded = computed(() => {
+  if (sizeLimit.value.maxWidth === 0) return false
   return baseForm.artworkWidth !== null && baseForm.artworkWidth > sizeLimit.value.maxWidth
 })
 </script>
@@ -198,8 +434,12 @@ const widthExceeded = computed(() => {
                   placeholder="请选择"
                   style="width: 100%"
                 >
-                  <el-option label="书法" value="calligraphy" />
-                  <el-option label="篆刻" value="carving" />
+                  <el-option
+                    v-for="item in categoryOptions"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.code || item.name"
+                  />
                 </el-select>
               </el-form-item>
             </el-col>
@@ -290,8 +530,12 @@ const widthExceeded = computed(() => {
               <el-col :span="12">
                 <el-form-item label="组别" required>
                   <el-select v-model="baseForm.group" placeholder="请选择" style="width: 100%">
-                    <el-option label="甲组" value="group1" />
-                    <el-option label="乙组" value="group2" />
+                    <el-option
+                      v-for="g in groupOptions"
+                      :key="g.id"
+                      :label="g.name"
+                      :value="g.code || g.name"
+                    />
                   </el-select>
                 </el-form-item>
               </el-col>

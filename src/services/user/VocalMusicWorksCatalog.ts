@@ -1,4 +1,4 @@
-import { httpPost, httpGet, httpDelete, downloadFile } from '@/utils/request'
+import { httpPost, httpGet, downloadFile } from '@/utils/request'
 import type { HttpResponse } from '@/utils/request'
 
 /**

@@ -2,9 +2,9 @@ import { httpPost, httpGet } from '@/utils/request'
 import type { HttpResponse } from '@/utils/request'
 
 /**
- * 后端返回的戏曲作品数据结构
+ * 后端返回的朗诵作品数据结构
  */
-export interface DramaSubmission {
+export interface RecitationSubmission {
   id: number
   title: string
   description: string
@@ -31,13 +31,13 @@ export interface DramaSubmission {
   updated_at: string
   image_file?: string | null
   video_file?: string | null
-  // 关联信息 - 后端返回的结构是 teachers 和 students
-  participants?: DramaParticipant[]
-  teachers?: DramaParticipant[]
-  students?: DramaParticipant[]
+  // 关联信息
+  participants?: RecitationParticipant[]
+  teachers?: RecitationParticipant[]
+  students?: RecitationParticipant[]
 }
 
-export interface DramaParticipant {
+export interface RecitationParticipant {
   id: number
   name: string
   gender: 'male' | 'female'
@@ -59,7 +59,7 @@ export interface DramaParticipant {
   student_id?: string
 }
 
-export interface DramaCategory {
+export interface RecitationCategory {
   id: number
   name: string
   code?: string
@@ -74,9 +74,9 @@ export interface GroupCategory {
 }
 
 /**
- * 提交/暂存戏曲作品报名
+ * 提交/暂存朗诵作品报名
  */
-export async function saveDramaSubmission(data: {
+export async function saveRecitationSubmission(data: {
   id?: number | string
   title: string
   description: string
@@ -93,53 +93,51 @@ export async function saveDramaSubmission(data: {
   performer_count: number
   is_original: boolean
   image_file?: string | null
-}): Promise<HttpResponse<DramaSubmission>> {
-  // 用户反馈暂存接口统一为 POST /dramaperformance/applications/
-  // 即使有 ID 也通过该接口提交
-  return httpPost<DramaSubmission>('/dramaperformance/applications/', data)
+}): Promise<HttpResponse<RecitationSubmission>> {
+  return httpPost<RecitationSubmission>('/recitationperformance/applications/', data)
 }
 
 /**
- * 获取戏曲作品报名详情
+ * 获取朗诵作品报名详情
  */
-export async function getDramaSubmission(
+export async function getRecitationSubmission(
   id: number | string,
-): Promise<HttpResponse<DramaSubmission>> {
-  return httpGet<DramaSubmission>(`/dramaperformance/applications/${id}/`)
+): Promise<HttpResponse<RecitationSubmission>> {
+  return httpGet<RecitationSubmission>(`/recitationperformance/applications/${id}/`)
 }
 
 /**
- * 获取戏曲作品报名列表
+ * 获取朗诵作品报名列表
  */
-export async function getDramaSubmissionList(
+export async function getRecitationSubmissionList(
   params?: Record<string, unknown>,
-): Promise<HttpResponse<DramaSubmission[]>> {
-  return httpGet<DramaSubmission[]>('/dramaperformance/applications/', params)
+): Promise<HttpResponse<RecitationSubmission[]>> {
+  return httpGet<RecitationSubmission[]>('/recitationperformance/applications/', params)
 }
 
 /**
  * 正式提交报名表
  */
-export async function submitDramaSubmission(id: number | string): Promise<HttpResponse<void>> {
-  return httpPost<void>(`/dramaperformance/applications/${id}/submit/`)
+export async function submitRecitationSubmission(id: number | string): Promise<HttpResponse<void>> {
+  return httpPost<void>(`/recitationperformance/applications/${id}/submit/`)
 }
 
 /**
- * 上传戏曲作品文件
+ * 上传朗诵作品文件
  */
-export async function uploadDramaFile(
+export async function uploadRecitationFile(
   submissionId: number | string,
   file: File,
 ): Promise<HttpResponse<void>> {
   const formData = new FormData()
   formData.append('image_file', file)
-  return httpPost<void>(`/dramaperformance/submissions/${submissionId}/upload/`, formData)
+  return httpPost<void>(`/recitationperformance/submissions/${submissionId}/upload/`, formData)
 }
 
 /**
- * 添加戏曲作品相关人员
+ * 添加朗诵作品相关人员
  */
-export async function addDramaParticipant(
+export async function addRecitationParticipant(
   submissionId: number | string,
   data: {
     name: string
@@ -159,41 +157,29 @@ export async function addDramaParticipant(
     grade?: string
     student_id?: string
   },
-): Promise<HttpResponse<DramaParticipant>> {
-  return httpPost<DramaParticipant>(
-    `/dramaperformance/participant/${submissionId}/add-participant/`,
+): Promise<HttpResponse<RecitationParticipant>> {
+  return httpPost<RecitationParticipant>(
+    `/recitationperformance/participant/${submissionId}/add-participant/`,
     data,
   )
 }
 
 /**
- * 删除戏曲作品相关人员
+ * 删除朗诵作品相关人员
  */
-export async function deleteDramaParticipant(id: number | string): Promise<HttpResponse<void>> {
-  return httpPost<void>(`/dramaperformance/participants/${id}/delete/`)
+export async function deleteRecitationParticipant(
+  id: number | string,
+): Promise<HttpResponse<void>> {
+  return httpPost<void>(`/recitationperformance/participants/${id}/delete/`)
 }
 
 /**
- * 获取戏曲作品相关人员
+ * 获取朗诵作品类型列表
  */
-// export async function getDramaParticipants(
-//   applicationId: number | string,
-// ): Promise<HttpResponse<DramaParticipant[]>> {
-//   return httpGet<{ participants: DramaParticipant[] }>(
-//     `/dramaperformance/participants/${applicationId}/`,
-//   ).then((res) => {
-//     return {
-//       ...res,
-//       data: res.data.participants || [],
-//     }
-//   })
-// }
-
-/**
- * 获取戏曲作品类型列表
- */
-export async function getDramaCategories(): Promise<HttpResponse<DramaCategory[]>> {
-  return httpGet<DramaCategory[]>('/dramaperformance/get-dramaperformance-categories/')
+export async function getRecitationCategories(): Promise<HttpResponse<RecitationCategory[]>> {
+  return httpGet<RecitationCategory[]>(
+    '/recitationperformance/get-recitationperformance-categories/',
+  )
 }
 
 /**

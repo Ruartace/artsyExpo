@@ -160,8 +160,10 @@ console.log('LoginModle mounted')
                   </el-button>
                 </el-form-item>
 
-                <div class="info-text">本次系统开放时间：<br>2025年12月19日00:00-2025年12月31日24:00。<br>
-请合理安排填报时间。</div>
+                <div class="info-text">
+                  本次系统开放时间：<br />2025年12月19日00:00-2025年12月31日24:00。<br />
+                  请合理安排填报时间。
+                </div>
               </el-form>
             </div>
           </div>

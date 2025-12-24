@@ -1135,7 +1135,7 @@ const showNotice = () => {
           :columns="accompColumns"
           v-model:rows="accomp"
           :readonly="readonly"
-          @add-participant="onAddParticipant('conductor')"
+          @add-participant="({ index, row }) => onAddParticipant('conductor', index, row)"
           @delete-row="({ row }) => onDeleteParticipant(row)"
         />
         <RosterBlock

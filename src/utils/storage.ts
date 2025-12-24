@@ -28,14 +28,14 @@ export function getStorageItem<T>(key: string, defaultValue: T): T {
   try {
     const item = localStorage.getItem(key)
     if (!item) return defaultValue
-    
+
     // Attempt to parse JSON. If it fails, return the raw string if T allows string
     try {
-        return JSON.parse(item)
+      return JSON.parse(item)
     } catch {
-        // If parsing fails, it might be a raw string stored directly
-        // Check if T can be a string, or just return as is if type assertion allows
-        return item as unknown as T
+      // If parsing fails, it might be a raw string stored directly
+      // Check if T can be a string, or just return as is if type assertion allows
+      return item as unknown as T
     }
   } catch (error) {
     console.error('获取本地存储失败:', error)
@@ -218,15 +218,15 @@ export function getStorageUsage(): {
       used += getStorageItemSize(key)
     }
   }
-  
+
   // 大多数浏览器的localStorage限制是5-10MB
   const available = 5 * 1024 * 1024 // 5MB
   const percentage = (used / available) * 100
-  
+
   return {
     used,
     available,
-    percentage: Math.min(percentage, 100)
+    percentage: Math.min(percentage, 100),
   }
 }
 
@@ -239,7 +239,7 @@ export function getStorageUsage(): {
 export function setStorageItemWithExpire(key: string, value: unknown, expireTime: number): void {
   const item = {
     value,
-    expireTime: Date.now() + expireTime
+    expireTime: Date.now() + expireTime,
   }
   setStorageItem(key, item)
 }
@@ -254,12 +254,12 @@ export function getStorageItemWithExpire<T>(key: string, defaultValue: T): T {
   try {
     const item = getStorageItem<{ value: T; expireTime: number } | null>(key, null)
     if (!item) return defaultValue
-    
+
     if (item.expireTime && Date.now() > item.expireTime) {
       removeStorageItem(key)
       return defaultValue
     }
-    
+
     return item.value || defaultValue
   } catch (error) {
     console.error('获取带过期的存储项失败:', error)
